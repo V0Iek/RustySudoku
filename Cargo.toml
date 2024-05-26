@@ -1,7 +1,8 @@
 [package]
 name = "rusty_sudoku"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 crossterm = "0.27"
+rand = "0.8"
