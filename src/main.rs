@@ -1,7 +1,7 @@
 use crossterm::execute;
 use crossterm::terminal::{Clear, ClearType};
 use rand::seq::SliceRandom;
-use rand::thread_rng;
+use rand::{thread_rng, Rng};
 use std::io::{self, Write};
 
 fn clear_terminal() {
@@ -48,7 +48,7 @@ fn is_valid(board: &[[i8; 9]; 9], row: usize, col: usize, value: i8) -> bool {
   true
 }
 
-fn fill_board(board: &mut [[i8; 9]; 9]) -> bool {
+fn solve_board(board: &mut [[i8; 9]; 9], counter: &mut i32) -> bool {
   let mut number_list: [i8; 9] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
   let mut rng = thread_rng();
 
@@ -60,8 +60,9 @@ fn fill_board(board: &mut [[i8; 9]; 9]) -> bool {
         for &value in number_list.iter() {
           if is_valid(board, row, col, value) {
             board[row][col] = value;
+            *counter += 1;
 
-            if check_board(board) || fill_board(board) {
+            if check_board(board) || solve_board(board, counter) {
               return true;
             }
 
@@ -76,10 +77,26 @@ fn fill_board(board: &mut [[i8; 9]; 9]) -> bool {
   check_board(board)
 }
 
+fn remove_numbers(board: &mut [[i8; 9]; 9]) {
+  let mut rng = rand::thread_rng();
+
+  for _ in 0..5 {
+    let mut row = rng.gen_range(0..9);
+    let mut col = rng.gen_range(0..9);
+
+    while board[col][row] == 0 {
+      col = rng.gen_range(0..9);
+      row = rng.gen_range(0..9);
+    }
+
+    board[col][row] = 0;
+  }
+}
+
 fn draw_board(board: [[i8; 9]; 9]) {
   clear_terminal();
 
-  let mut errs = 0;
+  let mut zeros = 0;
 
   for row in 0..9 {
     if row == 3 || row == 6 {
@@ -94,14 +111,14 @@ fn draw_board(board: [[i8; 9]; 9]) {
       print!("{} ", board[row][cell]);
 
       if board[row][cell] == 0 {
-        errs += 1;
+        zeros += 1;
       }
     }
 
     println!();
   }
 
-  println!("Erroros: {}", errs);
+  println!("Zeros: {}", zeros);
 }
 
 fn main() {
@@ -117,7 +134,9 @@ fn main() {
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
   ];
 
-  fill_board(&mut board);
+  let mut counter = 0;
 
+  solve_board(&mut board, &mut counter);
+  remove_numbers(&mut board);
   draw_board(board);
 }
